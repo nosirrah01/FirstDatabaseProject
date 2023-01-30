@@ -25,15 +25,16 @@ namespace NewUserConsoleApp
 
             sqlConnection = new SqlConnection(connectionString);
 
-            DisplayTable("User");
-            DisplayTable("Show");
-            DisplayTable("UserShow");
-
+            DisplayTable("User", true);
+            DisplayTable("Show", true);
+            DisplayTable("UserShow", true);
+            DisplayTable(@"select s.Name from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = 1", false);
             Console.Read();
         }
-        private static void DisplayTable(string tableName)
+        private static void DisplayTable(string tableName, bool isByTableName)
         {
-            string query = $"select * from [{tableName}]";
+            string query = isByTableName ? $"select * from [{tableName}]" : tableName;
+
             // SqlDataAdapter can be imagined like an Interface to make Tables usable by C#-Objects
             SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(query, sqlConnection);
             // trying moving dataTable outside of the using statement.
