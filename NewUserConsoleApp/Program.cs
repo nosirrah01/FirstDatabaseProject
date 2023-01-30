@@ -16,6 +16,8 @@ namespace NewUserConsoleApp
 
         static void Main(string[] args)
         {
+            Console.WriteLine("This line will appear in the branch!");
+
             Console.WriteLine("What would you like to do?");
             Console.WriteLine("Enter 1 for add user");
             Console.WriteLine("Enter 2 to display tables");
