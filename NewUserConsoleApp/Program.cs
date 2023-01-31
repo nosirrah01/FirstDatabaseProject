@@ -25,15 +25,16 @@ namespace NewUserConsoleApp
 
             sqlConnection = new SqlConnection(connectionString);
 
-            DisplayTable("User", true);
-            DisplayTable("Show", true);
-            DisplayTable("UserShow", true);
-            DisplayTable(@"select s.Name from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = 1", false);
+            DisplayTable("User");
+            DisplayTable("Show");
+            DisplayTable("UserShow");
+            DisplayTable("User 1's shows", @"select s.Name from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = 1");
             Console.Read();
         }
-        private static void DisplayTable(string tableName, bool isByTableName)
+        private static void DisplayTable(string tableName)
         {
-            string query = isByTableName ? $"select * from [{tableName}]" : tableName;
+            //string query = isByTableName ? $"select * from [{tableName}]" : tableName;
+            string query = $"select * from [{tableName}]";
 
             // SqlDataAdapter can be imagined like an Interface to make Tables usable by C#-Objects
             SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(query, sqlConnection);
@@ -52,6 +53,35 @@ namespace NewUserConsoleApp
             string formatedStringStructure = @"{0," + formattedItemLength + "}|";
             //Console.WriteLine(formattedItemLength);
 
+            PrintTable(tableName, dataTable, formattedItemLength, formatedStringStructure);
+
+        }
+
+        private static void DisplayTable(string tableName, string query)
+        {
+            // SqlDataAdapter can be imagined like an Interface to make Tables usable by C#-Objects
+            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(query, sqlConnection);
+            // trying moving dataTable outside of the using statement.
+            DataTable dataTable = new DataTable();
+            using (sqlDataAdapter)
+            {
+                //DataTable dataTable = new DataTable();
+
+                sqlDataAdapter.Fill(dataTable);
+
+            }
+
+            // get the highest length of an item in the table
+            int formattedItemLength = getFormattedItemLength(dataTable);
+            string formatedStringStructure = @"{0," + formattedItemLength + "}|";
+            //Console.WriteLine(formattedItemLength);
+
+            PrintTable(tableName, dataTable, formattedItemLength, formatedStringStructure);
+
+        }
+
+        private static void PrintTable(string tableName, DataTable dataTable, int formattedItemLength, string formatedStringStructure)
+        {
             // print the table
             Console.WriteLine(tableName);
             // print top line
@@ -105,7 +135,6 @@ namespace NewUserConsoleApp
 
 
             }
-
         }
 
         private static int getFormattedItemLength(DataTable dataTable)
