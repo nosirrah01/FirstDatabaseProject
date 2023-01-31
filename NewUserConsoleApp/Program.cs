@@ -35,18 +35,7 @@ namespace NewUserConsoleApp
         {
             //string query = isByTableName ? $"select * from [{tableName}]" : tableName;
             string query = $"select * from [{tableName}]";
-
-            // SqlDataAdapter can be imagined like an Interface to make Tables usable by C#-Objects
-            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(query, sqlConnection);
-            // trying moving dataTable outside of the using statement.
-            DataTable dataTable = new DataTable();
-            using (sqlDataAdapter)
-            {
-                //DataTable dataTable = new DataTable();
-
-                sqlDataAdapter.Fill(dataTable);
-
-            }
+            DataTable dataTable = CreateDatatableFromQuery(query);
 
             // get the highest length of an item in the table
             int formattedItemLength = getFormattedItemLength(dataTable);
@@ -57,7 +46,7 @@ namespace NewUserConsoleApp
 
         }
 
-        private static void DisplayTable(string tableName, string query)
+        private static DataTable CreateDatatableFromQuery(string query)
         {
             // SqlDataAdapter can be imagined like an Interface to make Tables usable by C#-Objects
             SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(query, sqlConnection);
@@ -70,6 +59,13 @@ namespace NewUserConsoleApp
                 sqlDataAdapter.Fill(dataTable);
 
             }
+
+            return dataTable;
+        }
+
+        private static void DisplayTable(string tableName, string query)
+        {
+            DataTable dataTable = CreateDatatableFromQuery(query);
 
             // get the highest length of an item in the table
             int formattedItemLength = getFormattedItemLength(dataTable);
