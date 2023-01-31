@@ -25,10 +25,36 @@ namespace NewUserConsoleApp
 
             sqlConnection = new SqlConnection(connectionString);
 
+            // setting this temporarily. will add ability for user to enter their name later
+            string name = "Ryan";
+
+            DataTable selectedUserIdTable = CreateDatatableFromQuery($"select [UserId] from [User] where [Username] = '{name}'");
+            //selectedUserIdTable.ToString().Trim();
+            
+
+            DisplayTable("Ryan's ID!!!",$"select [UserId] from [User] where [Username] = '{name}'");
+
+            Console.WriteLine(selectedUserIdTable.Rows[0][0]);
+
+            DisplayTable($"{name}'s shows", $"select s.Name from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = {selectedUserIdTable.Rows[0][0]}");
+            /*
             DisplayTable("User");
             DisplayTable("Show");
             DisplayTable("UserShow");
-            DisplayTable("User 1's shows", @"select s.Name from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = 1");
+            */
+            //DisplayTable("User 1's shows", @"select s.Name from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = 1");
+            name = "Bob";
+            selectedUserIdTable = CreateDatatableFromQuery($"select [UserId] from [User] where [Username] = '{name}'");
+            DisplayTable($"{name}'s shows", $"select s.Name from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = {selectedUserIdTable.Rows[0][0]}");
+
+            name = "David";
+            selectedUserIdTable = CreateDatatableFromQuery($"select [UserId] from [User] where [Username] = '{name}'");
+            DisplayTable($"{name}'s shows", $"select s.Name from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = {selectedUserIdTable.Rows[0][0]}");
+
+            name = "Matt";
+            selectedUserIdTable = CreateDatatableFromQuery($"select [UserId] from [User] where [Username] = '{name}'");
+            DisplayTable($"{name}'s shows", $"select s.Name from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = {selectedUserIdTable.Rows[0][0]}");
+
             Console.Read();
         }
         private static void DisplayTable(string tableName)
