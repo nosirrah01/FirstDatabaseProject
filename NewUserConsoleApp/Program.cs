@@ -45,7 +45,18 @@ namespace NewUserConsoleApp
             PrintTable(tableName, dataTable, formattedItemLength, formatedStringStructure);
 
         }
+        private static void DisplayTable(string tableName, string query)
+        {
+            DataTable dataTable = CreateDatatableFromQuery(query);
 
+            // get the highest length of an item in the table
+            int formattedItemLength = getFormattedItemLength(dataTable);
+            string formatedStringStructure = @"{0," + formattedItemLength + "}|";
+            //Console.WriteLine(formattedItemLength);
+
+            PrintTable(tableName, dataTable, formattedItemLength, formatedStringStructure);
+
+        }
         private static DataTable CreateDatatableFromQuery(string query)
         {
             // SqlDataAdapter can be imagined like an Interface to make Tables usable by C#-Objects
@@ -63,18 +74,7 @@ namespace NewUserConsoleApp
             return dataTable;
         }
 
-        private static void DisplayTable(string tableName, string query)
-        {
-            DataTable dataTable = CreateDatatableFromQuery(query);
-
-            // get the highest length of an item in the table
-            int formattedItemLength = getFormattedItemLength(dataTable);
-            string formatedStringStructure = @"{0," + formattedItemLength + "}|";
-            //Console.WriteLine(formattedItemLength);
-
-            PrintTable(tableName, dataTable, formattedItemLength, formatedStringStructure);
-
-        }
+        
 
         private static void PrintTable(string tableName, DataTable dataTable, int formattedItemLength, string formatedStringStructure)
         {
