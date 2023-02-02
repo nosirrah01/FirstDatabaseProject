@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NewUserConsoleApp
 {
-    internal class UiClass
+    public class UiClass
     {
         public static void DisplayTable(string tableName)
         {

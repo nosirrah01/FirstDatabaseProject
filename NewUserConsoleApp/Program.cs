@@ -7,6 +7,7 @@ using System.Configuration;
 using System.Data.SqlClient;
 using System.Data;
 using NewUserConsoleApp.FirstDatabaseDataSetTableAdapters;
+using System.Collections;
 
 namespace NewUserConsoleApp
 {
@@ -52,6 +53,9 @@ namespace NewUserConsoleApp
             name = "Matt";
             selectedUserIdTable = SqlDoer.CreateDatatableFromQuery($"select [UserId] from [User] where [Username] = '{name}'");
             UiClass.DisplayTable($"{name}'s shows", $"select s.Name from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = {selectedUserIdTable.Rows[0][0]}");
+
+            SqlDoer.UpdateDatabaseWithQuery("select * from [User];");
+            UiClass.DisplayTable("User");
 
             Console.Read();
         }

@@ -10,3 +10,6 @@ select s.Name from Show s inner join UserShow us on s.ShowId = us.ShowID where u
 
 
 select [UserId] from [User] where [Username] = 'Ryan'
+
+insert into [User] (Username) values ('Jacob');
+select * from [User];
