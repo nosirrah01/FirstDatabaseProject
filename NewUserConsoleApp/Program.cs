@@ -17,25 +17,50 @@ namespace NewUserConsoleApp
 
         static void Main(string[] args)
         {
+            // Note: I am in the process of transitioning from UiClass to UIinator.
+            // This method below references an old version of Main that is to be deleted
+            // once functionality of new main is complete and it is no longer needed for reference.
+            //InitialMessingAround();
+
+            string name = UIinator.AskName();
+            if (!SqlDoer.NameIsInUser(name))
+            {
+                SqlDoer.AddNameToUser(name);
+            }
+            //TODO: display shows that user has watched as well as their current ratings
+            UIinator.DisplayUserShowsNRatings(name);
+            int actionInt;
+            do
+            {
+                actionInt = UIinator.GetValidActionInt();
+                UIinator.DoAction(actionInt, name);
+            } while (actionInt != 6);
+        }
+
+        //TODO: Delete this method (Save for last.)
+        //TODO: Delete UiClass once it is no longer needed.
+        private static void InitialMessingAround()
+        {
             Console.WriteLine("This line will appear in the branch!");
 
             Console.WriteLine("What would you like to do?");
             Console.WriteLine("Enter 1 for add user");
             Console.WriteLine("Enter 2 to display tables");
-            
+
 
             // setting this temporarily. will add ability for user to enter their name later
             string name = "Ryan";
 
             DataTable selectedUserIdTable = SqlDoer.CreateDatatableFromQuery($"select [UserId] from [User] where [Username] = '{name}'");
             //selectedUserIdTable.ToString().Trim();
-            
 
-            UiClass.DisplayTable("Ryan's ID!!!",$"select [UserId] from [User] where [Username] = '{name}'");
+
+            UiClass.DisplayTable("Ryan's ID!!!", $"select [UserId] from [User] where [Username] = '{name}'");
 
             Console.WriteLine(selectedUserIdTable.Rows[0][0]);
 
             UiClass.DisplayTable($"{name}'s shows", $"select s.Name from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = {selectedUserIdTable.Rows[0][0]}");
+
             /*
             DisplayTable("User");
             DisplayTable("Show");
@@ -59,11 +84,10 @@ namespace NewUserConsoleApp
 
             Console.Read();
         }
-        
-        
 
-        
 
-        
+
+
+
     }
 }

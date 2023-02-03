@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Configuration;
 using System.Collections;
+using System.Xml.Linq;
 
 
 namespace NewUserConsoleApp
@@ -62,5 +63,26 @@ namespace NewUserConsoleApp
 
         }
 
+        internal static void AddNameToUser(string name)
+        {
+            //TODO: add name to User
+            throw new NotImplementedException();
+        }
+
+        internal static DataTable GetUserShowsNRatings(string name)
+        {
+            string userIdTableQuery = $"select [UserId] from [User] where [Username] = '{name}'";
+            DataTable selectedUserIdTable = CreateDatatableFromQuery(userIdTableQuery);
+            //TODO: fix this query
+            string userShowsNRatingsQuery = $"select s.Name from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = {selectedUserIdTable.Rows[0][0]}";
+            return CreateDatatableFromQuery(userShowsNRatingsQuery);
+        }
+
+        internal static bool NameIsInUser(string name)
+        {
+            //TODO: Check if Name is in the table User
+            return true;
+            
+        }
     }
 }
