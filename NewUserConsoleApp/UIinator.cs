@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace NewUserConsoleApp
 {
@@ -16,16 +17,23 @@ namespace NewUserConsoleApp
             return Console.ReadLine();
         }
 
-        internal static string AskAction()
+        internal static string AskQuestion(string question)
         {
-            Console.WriteLine("What would you like to do?\r\nEnter '1' to add a show\r\n'2' display your watched shows\r\n'3' display all known shows\r\n'4' to change your rating of a show\r\n'5' to remove a show\r\n'6' to quit the application");
+            Console.WriteLine(question);
             return Console.ReadLine();
         }
 
         internal static void DisplayUserShowsNRatings(string name)
         {
-            DataTable userShowsNRatings = SqlDoer.GetUserShowsNRatings(name);
-            PrintTable("Shows You Have Watched", userShowsNRatings);
+            if(SqlDoer.UserHasWatchedShows(name))
+            {
+                DataTable userShowsNRatings = SqlDoer.GetUserShowsNRatings(name);
+                PrintTable("Shows You Have Watched", userShowsNRatings);
+            } else
+            {
+                Console.WriteLine("You have not watched any shows yet.");
+            }
+            
 
         }
 
@@ -111,15 +119,13 @@ namespace NewUserConsoleApp
             switch (actionInt)
             {
                 case 1:
-                    //TODO: add a show
+                    AskShowInfo(name);
                     break;
                 case 2:
-                    //TODO: check if user has watched any shows before attempting to display shows.
-                    //Could do this by having SqlDoer check if corelating UserID is present on UserShow.
                     DisplayUserShowsNRatings(name);
                     break;
                 case 3:
-                    //TODO: display all known shows
+                    DisplayKnownShowsAndAverageRatings();
                     break;
                 case 4:
                     //TODO: change your rating of a show
@@ -133,27 +139,63 @@ namespace NewUserConsoleApp
             }
         }
 
-        internal static int GetValidActionInt()
+        private static void DisplayKnownShowsAndAverageRatings()
         {
-            int actionInt;
-            string action;
+            if (SqlDoer.TableHasRows("Show"))
+            {
+                DataTable showsAverageRatings = SqlDoer.GetKnownShowsAverageRatings();
+                
+                for (int i = 0; i < showsAverageRatings.Rows.Count; i++)
+                {
+                    double roundedRating = double.Parse(showsAverageRatings.Rows[i]["Average Rating"].ToString());
+                    showsAverageRatings.Rows[i]["Average Rating"] = $"{roundedRating}/10";
+                }
+                
+                PrintTable("Shows Known by This Application", showsAverageRatings);
+            }
+            else
+            {
+                Console.WriteLine("There are no shows known to this app yet.");
+            }
+
+        }
+        private static void AskShowInfo(string username)
+        {
+            Console.WriteLine("What is the name of the show?");
+            string showName = Console.ReadLine();
+            int rating = GetValidInt(10, "What would you rate the show out of 10?");
+            if(!SqlDoer.ValueIsInColumn(showName, "Show", "Name"))
+                SqlDoer.AddToShow(showName);
+            SqlDoer.AddToUserShow(username, showName, rating);
+            Console.WriteLine($"{showName} added to your watched shows.");
+        }
+
+        internal static int GetValidInt(int max, string question)
+        {
+            int validInt;
+            string answer;
             bool success;
             do
             {
-                action = UIinator.AskAction();
-                success = int.TryParse(action, out actionInt);
-                if (actionInt < 1 || actionInt > 6)
+                answer = UIinator.AskQuestion(question);
+                success = int.TryParse(answer, out validInt);
+                if (validInt < 1 || validInt > max)
                     success = false;
                 if (!success)
                     Console.WriteLine("Please enter just a valid number");
             } while (!success);
-            return actionInt;
+            return validInt;
         }
 
         internal static void SayGoodbye()
         {
             Console.WriteLine("Thanks for using this app!\r\nGoodbye!");
             Console.ReadLine();
+        }
+
+        internal static string GetActionQuestion()
+        {
+            return "What would you like to do?\r\nEnter '1' to add a show\r\n'2' display your watched shows\r\n'3' display all known shows\r\n'4' to change your rating of a show\r\n'5' to remove a show\r\n'6' to quit the application";
         }
     }
 }

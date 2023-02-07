@@ -1,13 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Configuration;
-using System.Data.SqlClient;
 using System.Data;
-using NewUserConsoleApp.FirstDatabaseDataSetTableAdapters;
-using System.Collections;
 
 namespace NewUserConsoleApp
 {
@@ -23,16 +15,15 @@ namespace NewUserConsoleApp
             //InitialMessingAround();
 
             string name = UIinator.AskName();
-            if (!SqlDoer.NameIsInUser(name))
+            if (!SqlDoer.ValueIsInColumn(name, "User", "Username"))
             {
                 SqlDoer.AddNameToUser(name);
             }
-            //TODO: display shows that user has watched as well as their current ratings
             UIinator.DisplayUserShowsNRatings(name);
             int actionInt;
             do
             {
-                actionInt = UIinator.GetValidActionInt();
+                actionInt = UIinator.GetValidInt(6, UIinator.GetActionQuestion());
                 UIinator.DoAction(actionInt, name);
             } while (actionInt != 6);
         }

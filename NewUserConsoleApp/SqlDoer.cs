@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Configuration;
-using System.Collections;
+using System.Data;
+using System.Data.SqlClient;
 using System.Xml.Linq;
 
 
@@ -65,24 +60,108 @@ namespace NewUserConsoleApp
 
         internal static void AddNameToUser(string name)
         {
-            //TODO: add name to User
-            throw new NotImplementedException();
+            Object[] newRow = new Object[] { 1, name };
+            AddRowToTable(newRow, "User");
+        }
+
+        private static void AddRowToTable(object[] newRow, string tableName)
+        {
+            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter($"select * from [{tableName}];", sqlConnection);
+            DataTable dataTable = new DataTable();
+            using (sqlDataAdapter)
+            {
+                SqlCommandBuilder commandBuilder = new SqlCommandBuilder(sqlDataAdapter);
+                sqlDataAdapter.Fill(dataTable);
+
+                dataTable.Rows.Add(newRow);
+
+                sqlDataAdapter.UpdateCommand = commandBuilder.GetUpdateCommand();
+                sqlDataAdapter.Update(dataTable);
+            }
         }
 
         internal static DataTable GetUserShowsNRatings(string name)
         {
             string userIdTableQuery = $"select [UserId] from [User] where [Username] = '{name}'";
             DataTable selectedUserIdTable = CreateDatatableFromQuery(userIdTableQuery);
-            //TODO: fix this query
-            string userShowsNRatingsQuery = $"select s.Name from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = {selectedUserIdTable.Rows[0][0]}";
+            string userShowsNRatingsQuery = $"select s.Name as 'Show Name', us.Rating as 'Your Rating' from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = {selectedUserIdTable.Rows[0][0]}";
             return CreateDatatableFromQuery(userShowsNRatingsQuery);
         }
 
-        internal static bool NameIsInUser(string name)
+        internal static bool ValueIsInColumn(string value, string tableName, string columnName)
         {
-            //TODO: Check if Name is in the table User
-            return true;
-            
+            bool hasRows = TableHasRows($"{tableName}");
+            bool isIn = false;
+            if(hasRows)
+            {
+                DataTable columnValues = CreateDatatableFromQuery($"select [{columnName}] from [{tableName}]");
+                foreach (DataRow dataRow in columnValues.Rows)
+                {
+                    foreach (var item in dataRow.ItemArray)
+                    {
+                        if (item.ToString().Equals(value))
+                        {
+                            isIn = true;
+                        }
+                        
+                    }
+                }
+            }
+
+            return isIn;
+        }
+
+        internal static bool TableHasRows(string tableName)
+        {
+            bool hasRows;
+            int count;
+            DataTable countTable = CreateDatatableFromQuery($"SELECT COUNT(*) as 'UserCount' from [{tableName}]");
+            count = int.Parse(countTable.Rows[0][0].ToString());
+            hasRows = (count != 0);
+            return hasRows;
+        }
+
+        internal static bool UserHasWatchedShows(string name)
+        {
+            string userIdTableQuery = $"select [UserId] from [User] where [Username] = '{name}'";
+            DataTable selectedUserIdTable = CreateDatatableFromQuery(userIdTableQuery);
+            DataTable userIdsThatHaveShows = CreateDatatableFromQuery($"select [UserID] from [UserShow];");
+            bool hasWatched = false;
+            foreach (DataRow dataRow in userIdsThatHaveShows.Rows)
+            {
+                foreach (var item in dataRow.ItemArray)
+                {
+                    if (item.ToString().Equals(selectedUserIdTable.Rows[0][0].ToString()))
+                    {
+                        hasWatched = true;
+                    }
+
+                }
+            }
+            return hasWatched;
+        }
+
+        internal static void AddToShow(string showName)
+        {
+            Object[] newRow = new Object[] { 1, showName };
+            AddRowToTable(newRow, "Show");
+        }
+
+        internal static void AddToUserShow(string userName, string showName, int rating)
+        {
+            string userIdTableQuery = $"select [UserId] from [User] where [Username] = '{userName}'";
+            DataTable selectedUserIdTable = CreateDatatableFromQuery(userIdTableQuery);
+            int userID = int.Parse(selectedUserIdTable.Rows[0][0].ToString());
+            string showIDTableQuery = $"select [ShowId] from [Show] where [Name] = '{showName}'";
+            DataTable selectedShowIdTable = CreateDatatableFromQuery(showIDTableQuery);
+            int showID = int.Parse(selectedShowIdTable.Rows[0][0].ToString());
+            Object[] newRow = new Object[] { 1, userID, showID, rating};
+            AddRowToTable(newRow, "UserShow");
+        }
+
+        internal static DataTable GetKnownShowsAverageRatings()
+        {
+            return CreateDatatableFromQuery("SELECT s.[Name] as 'Show Name', CAST(ROUND(AVG(CAST(us.[Rating] as decimal(4,2))), 1, 1) as varchar(50)) as 'Average Rating' FROM Show s INNER JOIN [UserShow] us on s.[ShowId] = us.[ShowID] GROUP BY s.[Name];");
         }
     }
 }

@@ -46,11 +46,6 @@
   <ItemGroup>
     <Compile Include="SqlDoer.cs" />
     <Compile Include="UiClass.cs" />
-    <Compile Include="FirstDatabaseDataSet.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>FirstDatabaseDataSet.xsd</DependentUpon>
-    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
@@ -62,17 +57,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="FirstDatabaseDataSet.xsc">
-      <DependentUpon>FirstDatabaseDataSet.xsd</DependentUpon>
-    </None>
-    <None Include="FirstDatabaseDataSet.xsd">
-      <Generator>MSDataSetGenerator</Generator>
-      <LastGenOutput>FirstDatabaseDataSet.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="FirstDatabaseDataSet.xss">
-      <DependentUpon>FirstDatabaseDataSet.xsd</DependentUpon>
-    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
