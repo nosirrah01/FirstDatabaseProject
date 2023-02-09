@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -28,6 +29,10 @@ namespace NewUserConsoleApp
             if(SqlDoer.UserHasWatchedShows(name))
             {
                 DataTable userShowsNRatings = SqlDoer.GetUserShowsNRatings(name);
+                for (int i = 0; i < userShowsNRatings.Rows.Count; i++)
+                {
+                    userShowsNRatings.Rows[i]["Your Rating"] += $"/10";
+                }
                 PrintTable("Shows You Have Watched", userShowsNRatings);
             } else
             {
@@ -132,11 +137,40 @@ namespace NewUserConsoleApp
                     break;
                 case 5:
                     //TODO: remove a show
+                    RemoveShow(name);
                     break;
                 case 6:
                     SayGoodbye();
                     break;
             }
+        }
+
+        private static void RemoveShow(string username)
+        {
+            Console.WriteLine("Enter the name of the show would you like to remove:");
+            string showName = Console.ReadLine();
+
+            if (SqlDoer.WatchedShow(username, showName))
+            {
+                //remove row from usershow
+                SqlDoer.RemoveFromUserShow(username, showName);
+                //check if show is still present in UserShow
+                if (!SqlDoer.ShowIsWatched(showName))
+                {
+                    SqlDoer.RemoveFromShow(showName);
+                }
+                //if not, remove show from Show
+            }
+            else
+            {
+                Console.WriteLine($"{showName} is not in your list of watched shows.");
+            }
+
+
+            /*if (!SqlDoer.ValueIsInColumn(showName, "Show", "Name"))
+                SqlDoer.AddToShow(showName);
+            SqlDoer.AddToUserShow(username, showName, rating);
+            Console.WriteLine($"{showName} added to your watched shows.");*/
         }
 
         private static void ChangeShowRating(string name)

@@ -49,3 +49,7 @@ select s.Name as 'Show Name' from Show s inner join UserShow us on s.ShowId = us
 select [ShowID] from [Show] where [Name] = 'Family Guy';
 
 select * from [UserShow];
+
+select s.Name as 'Show Name', CAST(us.Rating as varchar(50)) as 'Your Rating' from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = 1;
+
+select [Rating] from [UserShow] where UserID = 1 and ShowID = 1;

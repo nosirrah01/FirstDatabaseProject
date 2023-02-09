@@ -84,7 +84,7 @@ namespace NewUserConsoleApp
         {
             string userIdTableQuery = $"select [UserId] from [User] where [Username] = '{name}'";
             DataTable selectedUserIdTable = CreateDatatableFromQuery(userIdTableQuery);
-            string userShowsNRatingsQuery = $"select s.Name as 'Show Name', us.Rating as 'Your Rating' from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = {selectedUserIdTable.Rows[0][0]}";
+            string userShowsNRatingsQuery = $"select s.Name as 'Show Name', CAST(us.Rating as varchar(50)) as 'Your Rating' from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = {selectedUserIdTable.Rows[0][0]}";
             return CreateDatatableFromQuery(userShowsNRatingsQuery);
         }
 
@@ -244,6 +244,67 @@ namespace NewUserConsoleApp
                 sqlDataAdapter.UpdateCommand = commandBuilder.GetUpdateCommand();
                 sqlDataAdapter.Update(dataTable);
             }
+        }
+
+        internal static void RemoveFromUserShow(string username, string showName)
+        {
+            int userID = int.Parse(CreateDatatableFromQuery($"select [UserId] from [User] where [Username] = '{username}'").Rows[0][0].ToString());
+            int showID = int.Parse(CreateDatatableFromQuery($"select [ShowId] from [Show] where [Name] = '{showName}'").Rows[0][0].ToString());
+            int rating = int.Parse(CreateDatatableFromQuery($"select [Rating] from [UserShow] where UserID = {userID} and ShowID = {showID};").Rows[0][0].ToString());
+            DataTable userShow = CreateDatatableFromQuery("select * from [UserShow]");
+            int rowIndex = 0;
+
+            for (int i = 0; i < userShow.Rows.Count; i++)
+            {
+                if (userShow.Rows[i][2].Equals(showID) && userShow.Rows[i][1].Equals(userID))
+                {
+                    rowIndex = i;
+                }
+            }
+
+            Object[] rowToRemove = new Object[] { 1, userID, showID, rating };
+            RemoveRowFromTable(rowIndex, "UserShow");
+        }
+
+        private static void RemoveRowFromTable(int rowIndex, string tableName)
+        {
+            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter($"select * from [{tableName}];", sqlConnection);
+            DataTable dataTable = new DataTable();
+            using (sqlDataAdapter)
+            {
+                SqlCommandBuilder commandBuilder = new SqlCommandBuilder(sqlDataAdapter);
+                sqlDataAdapter.Fill(dataTable);
+
+                dataTable.Rows[rowIndex].Delete();
+                sqlDataAdapter.UpdateCommand = commandBuilder.GetUpdateCommand();
+                sqlDataAdapter.Update(dataTable);
+            }
+        }
+
+        internal static bool ShowIsWatched(string showName)
+        {
+            string showIDString = CreateDatatableFromQuery($"select [ShowId] from [Show] where [Name] = '{showName}'").Rows[0][0].ToString();
+            bool isWatched = false;
+            if (TableHasRows("UserShow"))
+            {
+                if (ValueIsInColumn(showIDString, "UserShow", "ShowID"))
+                    isWatched = true;
+            }
+            return isWatched;
+        }
+
+        internal static void RemoveFromShow(string showName)
+        {
+            DataTable showTable = CreateDatatableFromQuery("select * from [Show]");
+            int rowIndex = 0;
+            for (int i = 0; i < showTable.Rows.Count; i++)
+            {
+                if (showTable.Rows[i][1].ToString().Equals(showName))
+                {
+                    rowIndex = i;
+                }
+            }
+            RemoveRowFromTable(rowIndex, "Show");
         }
     }
 }
