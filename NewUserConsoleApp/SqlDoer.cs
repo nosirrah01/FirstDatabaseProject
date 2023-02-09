@@ -107,6 +107,24 @@ namespace NewUserConsoleApp
                     }
                 }
             }
+            return isIn;
+        }
+
+        private static bool ValueIsInColumn(string value, DataTable columnValues)
+        {
+            bool isIn = false;
+
+            foreach (DataRow dataRow in columnValues.Rows)
+            {
+                foreach (var item in dataRow.ItemArray)
+                {
+                    if (item.ToString().Equals(value))
+                    {
+                        isIn = true;
+                    }
+
+                }
+            }
 
             return isIn;
         }
@@ -162,6 +180,70 @@ namespace NewUserConsoleApp
         internal static DataTable GetKnownShowsAverageRatings()
         {
             return CreateDatatableFromQuery("SELECT s.[Name] as 'Show Name', CAST(ROUND(AVG(CAST(us.[Rating] as decimal(4,2))), 1, 1) as varchar(50)) as 'Average Rating' FROM Show s INNER JOIN [UserShow] us on s.[ShowId] = us.[ShowID] GROUP BY s.[Name];");
+        }
+
+        internal static bool WatchedShow(string userName, string showName)
+        {
+            DataTable watchedShows = GetWatchedShowsDatatable(userName);
+            bool watched = false;
+
+
+            string userIdTableQuery = $"select [UserId] from [User] where [Username] = '{userName}'";
+            DataTable selectedUserIdTable = CreateDatatableFromQuery(userIdTableQuery);
+            bool hasRows;
+            int count;
+            DataTable countTable = CreateDatatableFromQuery($"SELECT COUNT(*) as 'ShowCount' from [UserShow] where [UserID] = {selectedUserIdTable.Rows[0][0]}");
+            count = int.Parse(countTable.Rows[0][0].ToString());
+            hasRows = (count != 0);
+            if (hasRows)
+            {
+                if (ValueIsInColumn(showName, watchedShows))
+                {
+                    watched = true;
+                }
+            }
+            return watched;
+        }
+
+        private static DataTable GetWatchedShowsDatatable(string userName)
+        {
+            string userIdTableQuery = $"select [UserId] from [User] where [Username] = '{userName}'";
+            DataTable selectedUserIdTable = CreateDatatableFromQuery(userIdTableQuery);
+            string WatchedShowsQuery = $"select s.Name as 'Show Name' from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = {selectedUserIdTable.Rows[0][0]};";
+            DataTable watchedShows = CreateDatatableFromQuery(WatchedShowsQuery);
+            return watchedShows;
+        }
+
+        internal static void UpdateRating(string userName, string showName, int rating)
+        {
+            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter($"select * from [UserShow];", sqlConnection);
+            DataTable dataTable = new DataTable();
+            using (sqlDataAdapter)
+            {
+                SqlCommandBuilder commandBuilder = new SqlCommandBuilder(sqlDataAdapter);
+                sqlDataAdapter.Fill(dataTable);
+
+                //get row indexes from UserShow
+                //get showid from show
+                int showID = int.Parse(CreateDatatableFromQuery($"select [ShowId] from [Show] where [Name] = '{showName}';").Rows[0][0].ToString());
+                //get userid from user
+                int userID = int.Parse(CreateDatatableFromQuery($"select [UserId] from [User] where [Username] = '{userName}';").Rows[0][0].ToString());
+                //get row index
+                DataTable userShow = CreateDatatableFromQuery("select * from [UserShow]");
+                int rowIndex = 0;
+                for (int i = 0; i < userShow.Rows.Count; i++)
+                {
+                    if (userShow.Rows[i][2].Equals(showID) && userShow.Rows[i][1].Equals(userID))
+                    {
+                        rowIndex = i;
+                    }
+                }
+
+                dataTable.Rows[rowIndex]["Rating"] = rating;
+
+                sqlDataAdapter.UpdateCommand = commandBuilder.GetUpdateCommand();
+                sqlDataAdapter.Update(dataTable);
+            }
         }
     }
 }

@@ -128,7 +128,7 @@ namespace NewUserConsoleApp
                     DisplayKnownShowsAndAverageRatings();
                     break;
                 case 4:
-                    //TODO: change your rating of a show
+                    ChangeShowRating(name);
                     break;
                 case 5:
                     //TODO: remove a show
@@ -136,6 +136,21 @@ namespace NewUserConsoleApp
                 case 6:
                     SayGoodbye();
                     break;
+            }
+        }
+
+        private static void ChangeShowRating(string name)
+        {
+            Console.WriteLine("Enter the name of the show would you like to change your rating of:");
+            string showName = Console.ReadLine();
+            if (SqlDoer.WatchedShow(name, showName))
+            {
+                int rating = GetValidInt(10, "What would you rate the show out of 10?");
+                SqlDoer.UpdateRating(name, showName, rating);
+                Console.WriteLine($"Rating of {showName} updated to {rating}/10");
+            } else
+            {
+                Console.WriteLine($"{showName} is not in your list of watched shows.");
             }
         }
 

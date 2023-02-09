@@ -41,3 +41,11 @@ SELECT s.[Name] as 'Show Name', CAST(ROUND(AVG(CAST(us.[Rating] as decimal(4,2))
 FROM Show s
 INNER JOIN [UserShow] us on s.[ShowId] = us.[ShowID]
 GROUP BY s.[Name];
+
+
+select s.Name as 'Show Name' from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = 3;
+
+--select INDEX FROM [UserShow];
+select [ShowID] from [Show] where [Name] = 'Family Guy';
+
+select * from [UserShow];
