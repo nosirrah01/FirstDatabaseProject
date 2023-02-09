@@ -15,10 +15,5 @@ namespace ShowDatabaseNUnitTests
         {
             Assert.Pass();
         }
-        public void Test2()
-        {
-            UiClass.DisplayTable("David");
-            Assert.Pass();
-        }
     }
 }
