@@ -1,7 +1,4 @@
-﻿using System;
-using System.Data;
-
-namespace NewUserConsoleApp
+﻿namespace NewUserConsoleApp
 {
     internal class Program
     {
