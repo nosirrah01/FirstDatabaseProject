@@ -7,8 +7,7 @@ namespace NewUserConsoleApp
     {
         public static string AskName()
         {
-            Console.WriteLine("What is your name?");
-            return Console.ReadLine();
+            return AskQuestion("What is your name?");
         }
 
         internal static string AskQuestion(string question)
@@ -19,7 +18,7 @@ namespace NewUserConsoleApp
 
         internal static void DisplayUserShowsNRatings(string name)
         {
-            if(SqlDoer.UserHasWatchedShows(name))
+            if (SqlDoer.UserHasWatchedShows(name))
             {
                 DataTable userShowsNRatings = SqlDoer.GetUserShowsNRatings(name);
                 for (int i = 0; i < userShowsNRatings.Rows.Count; i++)
@@ -27,12 +26,11 @@ namespace NewUserConsoleApp
                     userShowsNRatings.Rows[i]["Your Rating"] += $"/10";
                 }
                 PrintTable("Shows You Have Watched", userShowsNRatings);
-            } else
+            }
+            else
             {
                 Console.WriteLine("You have not watched any shows yet.");
             }
-            
-
         }
 
         private static void PrintTable(string tableName, DataTable dataTable)
@@ -57,7 +55,6 @@ namespace NewUserConsoleApp
                 Console.Write(String.Format(formatedStringStructure, dataColumn.ColumnName));
             }
             Console.WriteLine();
-
             for (int i = 0; i < dataTable.Columns.Count; i++)
             {
                 Console.Write("+");
@@ -76,7 +73,6 @@ namespace NewUserConsoleApp
                     Console.Write(String.Format(formatedStringStructure, item));
                 }
                 Console.WriteLine();
-
                 for (int i = 0; i < dataTable.Columns.Count; i++)
                 {
                     Console.Write("+");
@@ -86,7 +82,6 @@ namespace NewUserConsoleApp
                     }
                 }
                 Console.WriteLine("+");
-
             }
         }
 
@@ -96,9 +91,7 @@ namespace NewUserConsoleApp
             foreach (DataColumn dataColumn in dataTable.Columns)
             {
                 if (formattedItemLength < dataColumn.ColumnName.Length)
-                {
                     formattedItemLength = dataColumn.ColumnName.Length;
-                }
             }
             foreach (DataRow dataRow in dataTable.Rows)
             {
@@ -108,7 +101,6 @@ namespace NewUserConsoleApp
                         formattedItemLength = item.ToString().Length;
                 }
             }
-
             return formattedItemLength;
         }
 
@@ -139,31 +131,23 @@ namespace NewUserConsoleApp
 
         private static void RemoveShow(string username)
         {
-            Console.WriteLine("Enter the name of the show would you like to remove:");
-            string showName = Console.ReadLine();
-
+            string showName = AskQuestion("Enter the name of the show would you like to remove:");
             if (SqlDoer.WatchedShow(username, showName))
             {
-                //remove row from usershow
                 SqlDoer.RemoveFromUserShow(username, showName);
-                //check if show is still present in UserShow
                 if (!SqlDoer.ShowIsWatched(showName))
-                {
                     SqlDoer.RemoveFromShow(showName);
-                }
                 Console.WriteLine($"{showName} was removed from your watched shows.");
             }
             else
             {
                 Console.WriteLine($"{showName} is not in your list of watched shows.");
             }
-
         }
 
         private static void ChangeShowRating(string name)
         {
-            Console.WriteLine("Enter the name of the show would you like to change your rating of:");
-            string showName = Console.ReadLine();
+            string showName = AskQuestion("Enter the name of the show would you like to change your rating of:");
             if (SqlDoer.WatchedShow(name, showName))
             {
                 int rating = GetValidInt(10, "What would you rate the show out of 10?");
@@ -180,25 +164,22 @@ namespace NewUserConsoleApp
             if (SqlDoer.TableHasRows("Show"))
             {
                 DataTable showsAverageRatings = SqlDoer.GetKnownShowsAverageRatings();
-                
                 for (int i = 0; i < showsAverageRatings.Rows.Count; i++)
                 {
                     double roundedRating = double.Parse(showsAverageRatings.Rows[i]["Average Rating"].ToString());
                     showsAverageRatings.Rows[i]["Average Rating"] = $"{roundedRating}/10";
                 }
-                
                 PrintTable("Shows Known by This Application", showsAverageRatings);
             }
             else
             {
                 Console.WriteLine("There are no shows known to this app yet.");
             }
-
         }
+
         private static void AskShowInfo(string username)
         {
-            Console.WriteLine("What is the name of the show?");
-            string showName = Console.ReadLine();
+            string showName = AskQuestion("What is the name of the show?");
             int rating = GetValidInt(10, "What would you rate the show out of 10?");
             if(!SqlDoer.ValueIsInColumn(showName, "Show", "Name"))
                 SqlDoer.AddToShow(showName);
@@ -213,7 +194,7 @@ namespace NewUserConsoleApp
             bool success;
             do
             {
-                answer = UIinator.AskQuestion(question);
+                answer = AskQuestion(question);
                 success = int.TryParse(answer, out validInt);
                 if (validInt < 1 || validInt > max)
                     success = false;
@@ -233,5 +214,6 @@ namespace NewUserConsoleApp
         {
             return "What would you like to do?\r\nEnter '1' to add a show\r\n'2' display your watched shows\r\n'3' display all known shows\r\n'4' to change your rating of a show\r\n'5' to remove a show\r\n'6' to quit the application";
         }
+
     }
 }
