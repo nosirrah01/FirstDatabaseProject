@@ -1,12 +1,5 @@
 ﻿using System;
-using System.CodeDom;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace NewUserConsoleApp
 {
@@ -136,7 +129,6 @@ namespace NewUserConsoleApp
                     ChangeShowRating(name);
                     break;
                 case 5:
-                    //TODO: remove a show
                     RemoveShow(name);
                     break;
                 case 6:
@@ -159,18 +151,13 @@ namespace NewUserConsoleApp
                 {
                     SqlDoer.RemoveFromShow(showName);
                 }
-                //if not, remove show from Show
+                Console.WriteLine($"{showName} was removed from your watched shows.");
             }
             else
             {
                 Console.WriteLine($"{showName} is not in your list of watched shows.");
             }
 
-
-            /*if (!SqlDoer.ValueIsInColumn(showName, "Show", "Name"))
-                SqlDoer.AddToShow(showName);
-            SqlDoer.AddToUserShow(username, showName, rating);
-            Console.WriteLine($"{showName} added to your watched shows.");*/
         }
 
         private static void ChangeShowRating(string name)

@@ -2,17 +2,12 @@
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
-using System.Xml.Linq;
-
 
 namespace NewUserConsoleApp
 {
     public class SqlDoer
     {
-        //static SqlConnection sqlConnection;
-
         static string connectionString = ConfigurationManager.ConnectionStrings["NewUserConsoleApp.Properties.Settings.FirstDatabaseConnectionString"].ConnectionString;
-
         static SqlConnection sqlConnection = new SqlConnection(connectionString);
 
         public static DataTable CreateDatatableFromQuery(string query)
@@ -23,39 +18,9 @@ namespace NewUserConsoleApp
             DataTable dataTable = new DataTable();
             using (sqlDataAdapter)
             {
-                //DataTable dataTable = new DataTable();
-
                 sqlDataAdapter.Fill(dataTable);
-
             }
-
             return dataTable;
-        }
-
-        public static void UpdateDatabaseWithQuery(string query)
-        {
-            /*
-            sqlConnection.Open();
-            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter();
-            sqlDataAdapter.InsertCommand = new SqlCommand();
-            */
-            // SqlDataAdapter can be imagined like an Interface to make Tables usable by C#-Objects
-            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(query, sqlConnection);
-            // trying moving dataTable outside of the using statement.
-            DataTable dataTable = new DataTable();
-            using (sqlDataAdapter)
-            {
-                //DataTable dataTable = new DataTable();
-                //sqlDataAdapter.SelectCommand = new SqlCommand(query, sqlConnection);
-                SqlCommandBuilder commandBuilder = new SqlCommandBuilder(sqlDataAdapter);
-                sqlDataAdapter.Fill(dataTable);
-
-                dataTable.Rows.Add(new Object[] { 1, "Smith" });
-
-                sqlDataAdapter.UpdateCommand = commandBuilder.GetUpdateCommand();
-                sqlDataAdapter.Update(dataTable);
-            }
-
         }
 
         internal static void AddNameToUser(string name)
@@ -82,17 +47,13 @@ namespace NewUserConsoleApp
 
         internal static DataTable GetUserShowsNRatings(string name)
         {
-            string userIdTableQuery = $"select [UserId] from [User] where [Username] = '{name}'";
-            DataTable selectedUserIdTable = CreateDatatableFromQuery(userIdTableQuery);
-            string userShowsNRatingsQuery = $"select s.Name as 'Show Name', CAST(us.Rating as varchar(50)) as 'Your Rating' from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = {selectedUserIdTable.Rows[0][0]}";
-            return CreateDatatableFromQuery(userShowsNRatingsQuery);
+            return CreateDatatableFromQuery($"select s.Name as 'Show Name', CAST(us.Rating as varchar(50)) as 'Your Rating' from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = {CreateDatatableFromQuery($"select [UserId] from [User] where [Username] = '{name}'").Rows[0][0]}");
         }
 
         internal static bool ValueIsInColumn(string value, string tableName, string columnName)
         {
-            bool hasRows = TableHasRows($"{tableName}");
             bool isIn = false;
-            if(hasRows)
+            if(TableHasRows($"{tableName}"))
             {
                 DataTable columnValues = CreateDatatableFromQuery($"select [{columnName}] from [{tableName}]");
                 foreach (DataRow dataRow in columnValues.Rows)
@@ -113,7 +74,6 @@ namespace NewUserConsoleApp
         private static bool ValueIsInColumn(string value, DataTable columnValues)
         {
             bool isIn = false;
-
             foreach (DataRow dataRow in columnValues.Rows)
             {
                 foreach (var item in dataRow.ItemArray)
@@ -125,24 +85,19 @@ namespace NewUserConsoleApp
 
                 }
             }
-
             return isIn;
         }
 
         internal static bool TableHasRows(string tableName)
         {
-            bool hasRows;
-            int count;
-            DataTable countTable = CreateDatatableFromQuery($"SELECT COUNT(*) as 'UserCount' from [{tableName}]");
-            count = int.Parse(countTable.Rows[0][0].ToString());
-            hasRows = (count != 0);
+            int count = int.Parse(CreateDatatableFromQuery($"SELECT COUNT(*) as 'UserCount' from [{tableName}]").Rows[0][0].ToString());
+            bool hasRows = (count != 0);
             return hasRows;
         }
 
         internal static bool UserHasWatchedShows(string name)
         {
-            string userIdTableQuery = $"select [UserId] from [User] where [Username] = '{name}'";
-            DataTable selectedUserIdTable = CreateDatatableFromQuery(userIdTableQuery);
+            DataTable selectedUserIdTable = CreateDatatableFromQuery($"select [UserId] from [User] where [Username] = '{name}'");
             DataTable userIdsThatHaveShows = CreateDatatableFromQuery($"select [UserID] from [UserShow];");
             bool hasWatched = false;
             foreach (DataRow dataRow in userIdsThatHaveShows.Rows)
@@ -167,12 +122,8 @@ namespace NewUserConsoleApp
 
         internal static void AddToUserShow(string userName, string showName, int rating)
         {
-            string userIdTableQuery = $"select [UserId] from [User] where [Username] = '{userName}'";
-            DataTable selectedUserIdTable = CreateDatatableFromQuery(userIdTableQuery);
-            int userID = int.Parse(selectedUserIdTable.Rows[0][0].ToString());
-            string showIDTableQuery = $"select [ShowId] from [Show] where [Name] = '{showName}'";
-            DataTable selectedShowIdTable = CreateDatatableFromQuery(showIDTableQuery);
-            int showID = int.Parse(selectedShowIdTable.Rows[0][0].ToString());
+            int userID = int.Parse(CreateDatatableFromQuery($"select [UserId] from [User] where [Username] = '{userName}'").Rows[0][0].ToString());
+            int showID = int.Parse(CreateDatatableFromQuery($"select [ShowId] from [Show] where [Name] = '{showName}'").Rows[0][0].ToString());
             Object[] newRow = new Object[] { 1, userID, showID, rating};
             AddRowToTable(newRow, "UserShow");
         }
@@ -184,34 +135,19 @@ namespace NewUserConsoleApp
 
         internal static bool WatchedShow(string userName, string showName)
         {
-            DataTable watchedShows = GetWatchedShowsDatatable(userName);
             bool watched = false;
-
-
-            string userIdTableQuery = $"select [UserId] from [User] where [Username] = '{userName}'";
-            DataTable selectedUserIdTable = CreateDatatableFromQuery(userIdTableQuery);
-            bool hasRows;
-            int count;
-            DataTable countTable = CreateDatatableFromQuery($"SELECT COUNT(*) as 'ShowCount' from [UserShow] where [UserID] = {selectedUserIdTable.Rows[0][0]}");
-            count = int.Parse(countTable.Rows[0][0].ToString());
-            hasRows = (count != 0);
-            if (hasRows)
+            int count = int.Parse(CreateDatatableFromQuery($"SELECT COUNT(*) as 'ShowCount' from [UserShow] where [UserID] = {CreateDatatableFromQuery($"select [UserId] from [User] where [Username] = '{userName}'").Rows[0][0]}").Rows[0][0].ToString());
+            if (count != 0)
             {
-                if (ValueIsInColumn(showName, watchedShows))
-                {
+                if (ValueIsInColumn(showName, GetWatchedShowsDatatable(userName)))
                     watched = true;
-                }
             }
             return watched;
         }
 
         private static DataTable GetWatchedShowsDatatable(string userName)
         {
-            string userIdTableQuery = $"select [UserId] from [User] where [Username] = '{userName}'";
-            DataTable selectedUserIdTable = CreateDatatableFromQuery(userIdTableQuery);
-            string WatchedShowsQuery = $"select s.Name as 'Show Name' from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = {selectedUserIdTable.Rows[0][0]};";
-            DataTable watchedShows = CreateDatatableFromQuery(WatchedShowsQuery);
-            return watchedShows;
+            return CreateDatatableFromQuery($"select s.Name as 'Show Name' from Show s inner join UserShow us on s.ShowId = us.ShowID where us.UserID = {CreateDatatableFromQuery($"select [UserId] from [User] where [Username] = '{userName}'").Rows[0][0]};");
         }
 
         internal static void UpdateRating(string userName, string showName, int rating)
@@ -222,25 +158,16 @@ namespace NewUserConsoleApp
             {
                 SqlCommandBuilder commandBuilder = new SqlCommandBuilder(sqlDataAdapter);
                 sqlDataAdapter.Fill(dataTable);
-
-                //get row indexes from UserShow
-                //get showid from show
                 int showID = int.Parse(CreateDatatableFromQuery($"select [ShowId] from [Show] where [Name] = '{showName}';").Rows[0][0].ToString());
-                //get userid from user
                 int userID = int.Parse(CreateDatatableFromQuery($"select [UserId] from [User] where [Username] = '{userName}';").Rows[0][0].ToString());
-                //get row index
                 DataTable userShow = CreateDatatableFromQuery("select * from [UserShow]");
                 int rowIndex = 0;
                 for (int i = 0; i < userShow.Rows.Count; i++)
                 {
                     if (userShow.Rows[i][2].Equals(showID) && userShow.Rows[i][1].Equals(userID))
-                    {
                         rowIndex = i;
-                    }
                 }
-
                 dataTable.Rows[rowIndex]["Rating"] = rating;
-
                 sqlDataAdapter.UpdateCommand = commandBuilder.GetUpdateCommand();
                 sqlDataAdapter.Update(dataTable);
             }
@@ -253,15 +180,11 @@ namespace NewUserConsoleApp
             int rating = int.Parse(CreateDatatableFromQuery($"select [Rating] from [UserShow] where UserID = {userID} and ShowID = {showID};").Rows[0][0].ToString());
             DataTable userShow = CreateDatatableFromQuery("select * from [UserShow]");
             int rowIndex = 0;
-
             for (int i = 0; i < userShow.Rows.Count; i++)
             {
                 if (userShow.Rows[i][2].Equals(showID) && userShow.Rows[i][1].Equals(userID))
-                {
                     rowIndex = i;
-                }
             }
-
             Object[] rowToRemove = new Object[] { 1, userID, showID, rating };
             RemoveRowFromTable(rowIndex, "UserShow");
         }
@@ -274,7 +197,6 @@ namespace NewUserConsoleApp
             {
                 SqlCommandBuilder commandBuilder = new SqlCommandBuilder(sqlDataAdapter);
                 sqlDataAdapter.Fill(dataTable);
-
                 dataTable.Rows[rowIndex].Delete();
                 sqlDataAdapter.UpdateCommand = commandBuilder.GetUpdateCommand();
                 sqlDataAdapter.Update(dataTable);
@@ -300,9 +222,7 @@ namespace NewUserConsoleApp
             for (int i = 0; i < showTable.Rows.Count; i++)
             {
                 if (showTable.Rows[i][1].ToString().Equals(showName))
-                {
                     rowIndex = i;
-                }
             }
             RemoveRowFromTable(rowIndex, "Show");
         }
